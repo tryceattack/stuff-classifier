@@ -129,6 +129,8 @@ class StuffClassifier::Base
 
   # train the classifier
   def train(category, text)
+    text = text.downcase
+    category = category.downcase
     if @seen_descriptions[@slice_category].nil? or @seen_descriptions[@slice_category][text] == 0
       @tokenizer.each_word(text) {|w| incr_word(w, category) }
       incr_cat(category)
@@ -147,6 +149,7 @@ class StuffClassifier::Base
   end
   # classify a text
   def classify(text, default=nil)
+    text = text.downcase
     # Find the category with the highest probability
     max_prob = @min_prob
     best = nil

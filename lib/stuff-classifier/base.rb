@@ -143,20 +143,23 @@ class StuffClassifier::Base
   def train(category, text)
     text = text.downcase
     category = category.downcase
-    if @seen_descriptions[@slice_category].nil? or @seen_descriptions[@slice_category][text] == 0
+    if  @seen_descriptions[@slice_category].nil? or
+        @seen_descriptions[@slice_category][category].nil? or
+        @seen_descriptions[@slice_category][category][text] == 0
       @tokenizer.each_word(text) {|w| incr_word(w, category) }
       incr_cat(category)
 
-      add_to_seen_sentences(text)
+      add_to_seen_sentences(category, text)
       puts "added successfully"
     else
       puts "It seems " + @slice_category + " already contains: " + text
     end
   end
 
-  def add_to_seen_sentences(text)
-    @seen_descriptions[@slice_category] ||= Hash.new(0)
-    @seen_descriptions[@slice_category][text] += 1
+  def add_to_seen_sentences(category, text)
+    @seen_descriptions[@slice_category] ||= Hash.new
+    @seen_descriptions[@slice_category][category] ||= Hash.new(0)
+    @seen_descriptions[@slice_category][category][text] += 1
   end
   # classify a text
   def classify(text, default=nil)

@@ -127,6 +127,18 @@ class StuffClassifier::Base
     @category_list.keys
   end
 
+  def remove_seen_descriptions!
+    @seen_descriptions = nil
+  end
+  def categories_with_count
+    category_list = @category_list.keys.sort
+    category_list_with_count = Hash.new(0)
+    category_list.each do |category|
+      category_list_with_count[category] = @category_list[category][:_count]
+    end
+    category_list_with_count
+  end
+
   # train the classifier
   def train(category, text)
     text = text.downcase
@@ -136,7 +148,6 @@ class StuffClassifier::Base
       incr_cat(category)
 
       add_to_seen_sentences(text)
-      puts @seen_descriptions[@slice_category]
       puts "added successfully"
     else
       puts "It seems " + @slice_category + " already contains: " + text

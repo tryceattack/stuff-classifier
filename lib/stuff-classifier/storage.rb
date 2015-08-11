@@ -21,7 +21,6 @@ module StuffClassifier
       if @storage.key? classifier.name
         @storage[classifier.name].each do |var,value|
           classifier.instance_variable_set "@#{var}",value
-          puts var,value
         end
       end
     end

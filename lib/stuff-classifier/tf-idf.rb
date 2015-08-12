@@ -35,17 +35,12 @@ class StuffClassifier::TfIdf < StuffClassifier::Base
     possible_categories = Set.new
     @tokenizer.each_word(text) do |w|
       next if category_cache[w].nil?
-      puts 5
-      puts category_cache[w]
-      puts 2
       category_cache[w].keys.each do |category|
-        puts 3
         if category_cache[w][category] == true
           possible_categories.add?(category)
         end
       end
     end
-    puts 6
     possible_categories.each do |cat|
       p = text_prob(text, cat)
       probs[cat] = p

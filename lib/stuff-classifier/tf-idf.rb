@@ -1,3 +1,4 @@
+require 'set'
 class StuffClassifier::TfIdf < StuffClassifier::Base
   extend StuffClassifier::Storage::ActAsStorable
 
@@ -11,8 +12,8 @@ class StuffClassifier::TfIdf < StuffClassifier::Base
     cat_nr = cat_count(cat)
 
     tf = 1.0 * word_cat_nr / cat_nr
-        
-    idf = Math.log10((total_categories + 2) / (categories_with_word_count(word) + 1.0))    
+
+    idf = Math.log10((total_categories + 2) / (categories_with_word_count(word) + 1.0))
     tf * idf
   end
 
@@ -28,7 +29,30 @@ class StuffClassifier::TfIdf < StuffClassifier::Base
     end
     probs.map{|k,v| [k,v]}.sort{|a,b| b[1] <=> a[1]}
   end
-  
+
+  def cat_quick_search(text)
+    probs = {}
+    possible_categories = Set.new
+    @tokenizer.each_word(text) do |w|
+      next if category_cache[w].nil?
+      puts 5
+      puts category_cache[w]
+      puts 2
+      category_cache[w].keys.each do |category|
+        puts 3
+        if category_cache[w][category] == true
+          possible_categories.add?(category)
+        end
+      end
+    end
+    puts 6
+    possible_categories.each do |cat|
+      p = text_prob(text, cat)
+      probs[cat] = p
+    end
+    probs.map{|k,v| [k,v]}.sort{|a,b| b[1] <=> a[1]}
+  end
+
   def word_classification_detail(word)
 
     p "tf_idf"
@@ -36,9 +60,9 @@ class StuffClassifier::TfIdf < StuffClassifier::Base
     ap result
 
     p "text_prob"
-    result=categories.inject({}) do |h,cat| h[cat]=text_prob(word,cat);h end  
-    ap result    
-    
+    result=categories.inject({}) do |h,cat| h[cat]=text_prob(word,cat);h end
+    ap result
+
   end
-  
+
 end

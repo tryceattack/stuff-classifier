@@ -14,8 +14,8 @@ class StuffClassifier::Base
   attr_accessor :min_prob
   attr_accessor :slice_category
   attr_accessor :seen_descriptions
-
-  storable :version,:word_list,:category_list,:training_count,:thresholds,:min_prob, :seen_descriptions
+  attr_accessor :category_cache
+  storable :version,:word_list,:category_list,:training_count,:thresholds,:min_prob, :seen_descriptions, :category_cache
 
   # opts :
   # language
@@ -35,6 +35,7 @@ class StuffClassifier::Base
     @category_list = {}
     @seen_descriptions ||= {}
     @training_count=0
+    @category_cache = {}
     puts name
     # storage
     purge_state = opts[:purge_state]
@@ -143,6 +144,10 @@ class StuffClassifier::Base
   def train(category, text)
     text = text.downcase
     category = category.downcase
+    @tokenizer.each_word(category) do |w|
+      @category_cache[w] ||= {}
+      @category_cache[w][category] = true
+    end
     if  @seen_descriptions[@slice_category].nil? or
         @seen_descriptions[@slice_category][category].nil? or
         @seen_descriptions[@slice_category][category][text] == 0
@@ -150,9 +155,6 @@ class StuffClassifier::Base
       incr_cat(category)
 
       add_to_seen_sentences(category, text)
-      puts "added successfully"
-    else
-      puts "It seems " + @slice_category + " already contains: " + text
     end
   end
 
@@ -160,6 +162,19 @@ class StuffClassifier::Base
     @seen_descriptions[@slice_category] ||= Hash.new
     @seen_descriptions[@slice_category][category] ||= Hash.new(0)
     @seen_descriptions[@slice_category][category][text] += 1
+  end
+
+  def delete_category(category)
+    @seen_descriptions[@slice_category][category].keys do |key|
+      text = @seen_descriptions[@slice_category][category][key]
+      @tokenizer.each_word(text) do |w|
+        @word_list[w][:categories][category] -= 1
+        @category_list[category][:_total_word] -= 1
+      end
+      @category_list[category][:_count] -= 1
+      @training_count -= 1
+    end
+    @seen_descriptions[@slice_category][category] = nil
   end
   # classify a text
   def classify(text, default=nil)
@@ -194,6 +209,20 @@ class StuffClassifier::Base
     end
 
     return best
+  end
+
+  # classify a text
+  def predictions(text, default=nil)
+    text = text.downcase
+    # Find the category with the highest probability
+
+    scores = cat_quick_search(text)
+    categories = []
+    scores.each do |score|
+      categories << score[0] # Example of scores: [["aacbb", 4.4], ["a", 3], ["aabb", 2.2], ["hi there", 2], ["aaaa", 1]]
+    end
+
+    return categories # Could return an empty array
   end
 
   def save_state

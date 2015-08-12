@@ -9,7 +9,7 @@ class StuffClassifier::Tokenizer
     @language = opts.key?(:language) ? opts[:language] : "en"
     @properties = StuffClassifier::Tokenizer::TOKENIZER_PROPERTIES[@language]
 
-    @stemming = opts.key?(:stemming) ? opts[:stemming] : true
+    @stemming = opts.key?(:stemming) ? opts[:stemming] : false
     if @stemming
       @stemmer = Lingua::Stemmer.new(:language => @language)
     end

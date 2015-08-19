@@ -165,8 +165,11 @@ class StuffClassifier::Base
   end
 
   def delete_category(category)
-    @seen_descriptions[@slice_category][category].keys do |key|
-      text = @seen_descriptions[@slice_category][category][key]
+    category = category.downcase
+    return if @seen_descriptions[@slice_category][category].nil?
+    # the keys are the description
+    @seen_descriptions[@slice_category][category].keys.each do |description|
+      text = description
       @tokenizer.each_word(text) do |w|
         @word_list[w][:categories][category] -= 1
         @category_list[category][:_total_word] -= 1
@@ -174,8 +177,13 @@ class StuffClassifier::Base
       @category_list[category][:_count] -= 1
       @training_count -= 1
     end
+    @tokenizer.each_word(category) do |w|
+      @category_cache[w] ||= {}
+      @category_cache[w].delete(category)
+    end
     @seen_descriptions[@slice_category][category] = nil
   end
+
   # classify a text
   def classify(text, default=nil)
     text = text.downcase
